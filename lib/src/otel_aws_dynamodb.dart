@@ -2,7 +2,6 @@
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
 import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
-import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_aws_dynamodb_suppression.dart';
 
@@ -52,49 +51,68 @@ Future<T> tracedAwsDynamoDB<T>({
   final t = tracer ?? OTel.tracerProvider().getTracer('otel_aws_dynamodb');
   final span = t.startSpan('dynamodb $operation', kind: SpanKind.client);
   try {
-    span.setStringAttribute('db.system.name', 'dynamodb');
-    span.setStringAttribute('rpc.system', 'aws-api');
-    span.setStringAttribute('rpc.service', 'DynamoDB');
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('db.system.name', 'dynamodb')]));
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('rpc.system', 'aws-api')]));
+    span.addAttributes(
+        OTel.attributes([OTel.attributeString('rpc.service', 'DynamoDB')]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.tableName != null) {
-        span.setStringAttribute('db.collection.name', res.tableName!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('db.collection.name', res.tableName!)]));
       }
       if (res.indexName != null) {
-        span.setStringAttribute('aws.dynamodb.index_name', res.indexName!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('aws.dynamodb.index_name', res.indexName!)]));
       }
       if (res.itemCount != null) {
-        span.setIntAttribute('aws.dynamodb.item_count', res.itemCount!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('aws.dynamodb.item_count', res.itemCount!)]));
       }
       if (res.scannedCount != null) {
-        span.setIntAttribute('aws.dynamodb.scanned_count', res.scannedCount!);
+        span.addAttributes(OTel.attributes([
+          OTel.attributeInt('aws.dynamodb.scanned_count', res.scannedCount!)
+        ]));
       }
       if (res.consumedReadCapacity != null) {
-        span.setDoubleAttribute(
-            'aws.dynamodb.consumed_capacity.read', res.consumedReadCapacity!);
+        span.addAttributes(OTel.attributes([
+          OTel.attributeDouble(
+              'aws.dynamodb.consumed_capacity.read', res.consumedReadCapacity!)
+        ]));
       }
       if (res.consumedWriteCapacity != null) {
-        span.setDoubleAttribute(
-            'aws.dynamodb.consumed_capacity.write', res.consumedWriteCapacity!);
+        span.addAttributes(OTel.attributes([
+          OTel.attributeDouble('aws.dynamodb.consumed_capacity.write',
+              res.consumedWriteCapacity!)
+        ]));
       }
       if (res.conditional != null) {
-        span.setBoolAttribute('aws.dynamodb.conditional', res.conditional!);
+        span.addAttributes(OTel.attributes([
+          OTel.attributeBool('aws.dynamodb.conditional', res.conditional!)
+        ]));
       }
       if (res.region != null) {
-        span.setStringAttribute('cloud.region', res.region!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('cloud.region', res.region!)]));
       }
       if (res.statusCode != null) {
-        span.setIntAttribute('http.response.status_code', res.statusCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
       }
       if (res.errorCode != null) {
-        span.setStringAttribute('dynamodb.error.code', res.errorCode!);
+        span.addAttributes(OTel.attributes(
+            [OTel.attributeString('dynamodb.error.code', res.errorCode!)]));
       }
       final fail = res.errorCode != null ||
           (res.statusCode != null && res.statusCode! >= 400);
       if (fail) {
-        span.setStringAttribute(
-            ErrorResource.errorType.key, res.errorCode ?? 'dynamodb.error');
+        span.addAttributes(OTel.attributes([
+          OTel.attributeString(
+              ErrorResource.errorType.key, res.errorCode ?? 'dynamodb.error')
+        ]));
         span.setStatus(SpanStatusCode.Error, res.errorMessage);
       }
     }
