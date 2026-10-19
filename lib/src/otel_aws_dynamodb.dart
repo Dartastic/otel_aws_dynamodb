@@ -6,6 +6,7 @@ import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 import 'otel_aws_dynamodb_suppression.dart';
 
 class AwsDynamoDBResult {
+  /// Creates a result.
   const AwsDynamoDBResult({
     this.tableName,
     this.indexName,
@@ -33,8 +34,13 @@ class AwsDynamoDBResult {
   final String? errorMessage;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class AwsDynamoDBCallResult<T> {
+  /// Creates a call result.
   const AwsDynamoDBCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final AwsDynamoDBResult? result;
 }
